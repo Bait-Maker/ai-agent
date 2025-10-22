@@ -1,28 +1,47 @@
 import os
 from configparser import ConfigParser
+from google.genai import types
+from .data import MAX_CHARS
+
 
 def get_file_content(working_directory, file_path):
-    config = ConfigParser()
-    config.read("file_config.ini")
+    # config = ConfigParser()
+    # config.read("file_config.ini")
 
     abs_working_directory = os.path.abspath(working_directory)
     target_path = os.path.abspath(os.path.join(working_directory, file_path))
-    
+
     if not target_path.startswith(abs_working_directory):
         return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
     if not os.path.isfile(target_path):
         return f'Error: File not found or is not a regular file: "{file_path}"'
-    
-    file_config = config["FILE"]
-    max_chars = int(file_config["MAX_CHARS"])
+
+    # file_config = config["FILE"]
+    # max_chars = int(file_config["MAX_CHARS"])
 
     try:
         with open(target_path, "r") as file:
-            file_contenent_string = file.read(max_chars)
-            if os.path.getsize(target_path) > max_chars:
+            file_contenent_string = file.read(MAX_CHARS)
+            if os.path.getsize(target_path) > MAX_CHARS:
                 file_contenent_string += (
-                    f'[...File "{file_path}" truncated at {max_chars} characters]'
+                    f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
                 )
         return file_contenent_string
     except Exception as e:
-        return (f'Error reading file: "{file_path}": {e}')
+        return f'Error reading file: "{file_path}": {e}'
+
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description=f"Reads and returns the first {MAX_CHARS} characters of the content from a specified file within the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file whose content should be read, relative to the working directory.",
+            )
+        },
+        required=["file_path"],
+    ),
+)

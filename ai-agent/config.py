@@ -8,5 +8,3 @@ config["FILE"] = {
 
 with open("file_config.ini", "w") as f:
     config.write(f)
-
-    
